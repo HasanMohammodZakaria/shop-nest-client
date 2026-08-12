@@ -3,16 +3,48 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { useState } from 'react';
-import { FiHeart, FiShoppingCart, FiMenu, FiX, FiChevronDown } from 'react-icons/fi';
+import {
+  FiHeart,
+  FiShoppingCart,
+  FiMenu,
+  FiX,
+  FiChevronDown,
+  FiUser,
+  FiPackage,
+  FiHeart as FiWishlist,
+  FiBox,
+  FiPlusSquare,
+  FiGrid,
+  FiUsers,
+} from 'react-icons/fi';
 import { useAuth } from '@/context/AuthContext';
 import Button from '@/components/ui/Button';
+
+interface DashboardLink {
+  label: string;
+  href: string;
+  icon: React.ReactNode;
+}
 
 const Navbar = () => {
   const { user, logout } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
-  const dashboardHref = user?.role === 'ADMIN' ? '/admin/dashboard' : '/dashboard';
+  const userLinks: DashboardLink[] = [
+    { label: 'My Profile', href: '/dashboard/profile', icon: <FiUser size={16} /> },
+    { label: 'My Orders', href: '/dashboard/orders', icon: <FiPackage size={16} /> },
+    { label: 'My Wishlist', href: '/dashboard/wishlist', icon: <FiWishlist size={16} /> },
+  ];
+
+  const adminLinks: DashboardLink[] = [
+    { label: 'Manage Products', href: '/dashboard/products', icon: <FiBox size={16} /> },
+    { label: 'Add Product', href: '/dashboard/products/new', icon: <FiPlusSquare size={16} /> },
+    { label: 'Manage Categories', href: '/dashboard/categories', icon: <FiGrid size={16} /> },
+    { label: 'Manage Users', href: '/dashboard/users', icon: <FiUsers size={16} /> },
+  ];
+
+  const dashboardLinks = user?.role === 'ADMIN' ? adminLinks : userLinks;
 
   const avatarSrc =
     user?.image ||
@@ -60,20 +92,30 @@ const Navbar = () => {
               </button>
 
               {dropdownOpen && (
-                <div className="absolute right-0 mt-2 w-48 rounded-lg border border-border bg-bg py-1 shadow-lg">
-                  <Link
-                    href={dashboardHref}
-                    onClick={() => setDropdownOpen(false)}
-                    className="block px-4 py-2 text-sm text-text hover:bg-bg-muted"
-                  >
-                    Dashboard
-                  </Link>
+                <div className="absolute right-0 mt-2 w-56 rounded-lg border border-border bg-bg py-1 shadow-lg">
+                  <div className="border-b border-border px-4 py-2">
+                    <p className="text-sm font-medium text-text truncate">{user.name}</p>
+                    <p className="text-xs text-text-muted truncate">{user.email}</p>
+                  </div>
+
+                  {dashboardLinks.map((link) => (
+                    <Link
+                      key={link.href}
+                      href={link.href}
+                      onClick={() => setDropdownOpen(false)}
+                      className="flex items-center gap-2 px-4 py-2 text-sm text-text hover:bg-bg-muted"
+                    >
+                      {link.icon}
+                      {link.label}
+                    </Link>
+                  ))}
+
                   <button
                     onClick={() => {
                       setDropdownOpen(false);
                       logout();
                     }}
-                    className="block w-full px-4 py-2 text-left text-sm text-error hover:bg-bg-muted"
+                    className="mt-1 block w-full border-t border-border px-4 py-2 text-left text-sm text-error hover:bg-bg-muted"
                   >
                     Logout
                   </button>
@@ -100,7 +142,7 @@ const Navbar = () => {
             className="absolute inset-0 bg-black/40"
             onClick={() => setMobileOpen(false)}
           />
-          <div className="absolute right-0 top-0 h-full w-72 bg-bg p-5 shadow-xl">
+          <div className="absolute right-0 top-0 h-full w-72 overflow-y-auto bg-bg p-5 shadow-xl">
             <div className="mb-6 flex items-center justify-between">
               <span className="text-lg font-bold text-secondary">
                 Shop<span className="text-primary">Nest</span>
@@ -119,7 +161,10 @@ const Navbar = () => {
                   height={40}
                   className="h-10 w-10 rounded-full object-cover"
                 />
-                <span className="font-medium text-text">{user.name}</span>
+                <div className="min-w-0">
+                  <p className="truncate font-medium text-text">{user.name}</p>
+                  <p className="truncate text-xs text-text-muted">{user.email}</p>
+                </div>
               </div>
             )}
 
@@ -144,19 +189,31 @@ const Navbar = () => {
 
               {user ? (
                 <>
-                  <Link
-                    href={dashboardHref}
-                    onClick={() => setMobileOpen(false)}
-                    className="text-text"
-                  >
-                    Dashboard
-                  </Link>
+                  <div className="mt-2 border-t border-border pt-4">
+                    <p className="mb-2 text-xs font-semibold uppercase text-text-muted">
+                      Dashboard
+                    </p>
+                    <div className="flex flex-col gap-3">
+                      {dashboardLinks.map((link) => (
+                        <Link
+                          key={link.href}
+                          href={link.href}
+                          onClick={() => setMobileOpen(false)}
+                          className="flex items-center gap-2 text-text"
+                        >
+                          {link.icon}
+                          {link.label}
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+
                   <button
                     onClick={() => {
                       setMobileOpen(false);
                       logout();
                     }}
-                    className="text-left text-error"
+                    className="mt-2 border-t border-border pt-4 text-left text-error"
                   >
                     Logout
                   </button>

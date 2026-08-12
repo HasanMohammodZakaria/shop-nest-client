@@ -31,20 +31,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   });
 
   useEffect(() => {
-    const savedToken = localStorage.getItem("token");
-    const savedUser = localStorage.getItem("user");
+  const savedToken = localStorage.getItem("token");
+  const savedUser = localStorage.getItem("user");
 
-    if (savedToken && savedUser) {
+  // Guard against corrupted/invalid localStorage data (e.g. the literal
+  // string "undefined", or malformed JSON from an older bug) — without
+  // this check, JSON.parse() would crash the whole app on load.
+  if (savedToken && savedUser && savedUser !== "undefined") {
+    try {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setAuthState({
         user: JSON.parse(savedUser),
         token: savedToken,
         isLoading: false,
       });
-    } else {
+    } catch {
+      // Corrupted data — clear it and fall back to logged-out state
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+     
       setAuthState((prev) => ({ ...prev, isLoading: false }));
     }
-  }, []);
+  } else {
+   
+    setAuthState((prev) => ({ ...prev, isLoading: false }));
+  }
+}, []);
 
   const login = (userData: User, jwtToken: string) => {
     setAuthState({ user: userData, token: jwtToken, isLoading: false });
