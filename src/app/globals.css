@@ -1,26 +1,66 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* ============ PRIMARY — main brand color (buttons, links, active states) ============ */
+  --color-primary: #059669;         /* emerald-600 — trust, "buy now" actions */
+  --color-primary-light: #10b981;   /* emerald-500 — hover/lighter variant */
+  --color-primary-dark: #047857;    /* emerald-700 — pressed/active state */
+
+  /* ============ SECONDARY — header, footer, dark sections ============ */
+  --color-secondary: #0f172a;       /* slate-900 — near-black navy, premium look */
+  --color-secondary-light: #1e293b; /* slate-800 */
+
+  /* ============ ACCENT — sale tags, discount badges, urgent CTAs ============ */
+  --color-accent: #f97316;          /* orange-500 — draws the eye, used sparingly */
+  --color-accent-light: #fb923c;    /* orange-400 */
+
+  /* ============ SEMANTIC — status colors ============ */
+  --color-success: #16a34a;
+  --color-warning: #eab308;
+  --color-error: #dc2626;
+  --color-info: #2563eb;
+
+  /* ============ NEUTRALS — text, backgrounds, borders ============ */
+  --color-bg: #ffffff;
+  --color-bg-muted: #f9fafb;        /* subtle section backgrounds */
+  --color-text: #111827;            /* main body text */
+  --color-text-muted: #6b7280;      /* secondary text, descriptions */
+  --color-border: #e5e7eb;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+  /* Exposes every variable above as a Tailwind utility class:
+     bg-primary, text-primary, border-primary, bg-accent, etc. */
+  --color-primary: var(--color-primary);
+  --color-primary-light: var(--color-primary-light);
+  --color-primary-dark: var(--color-primary-dark);
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-secondary: var(--color-secondary);
+  --color-secondary-light: var(--color-secondary-light);
+
+  --color-accent: var(--color-accent);
+  --color-accent-light: var(--color-accent-light);
+
+  --color-success: var(--color-success);
+  --color-warning: var(--color-warning);
+  --color-error: var(--color-error);
+  --color-info: var(--color-info);
+
+  --color-bg: var(--color-bg);
+  --color-bg-muted: var(--color-bg-muted);
+  --color-text: var(--color-text);
+  --color-text-muted: var(--color-text-muted);
+  --color-border: var(--color-border);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-sans, ui-sans-serif, system-ui, sans-serif);
+}
+
+/* Smooth transitions site-wide for hover/focus states */
+* {
+  transition-property: background-color, border-color, color, box-shadow;
+  transition-duration: 150ms;
 }
