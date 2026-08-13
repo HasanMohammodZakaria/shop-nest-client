@@ -2,6 +2,19 @@ import { Category } from "./category";
 
 export type ProductStatus = "ACTIVE" | "INACTIVE" | "OUT_OF_STOCK";
 
+export interface ProductReview {
+  id: string;
+  rating: number;
+  comment?: string | null;
+  userId: string;
+  user: {
+    id: string;
+    name: string;
+  };
+  createdAt: string;
+}
+
+
 export interface Product {
   id: string;
   name: string;
@@ -15,6 +28,7 @@ export interface Product {
   isDeleted: boolean;
   createdAt: string;
   updatedAt: string;
+  reviews?: ProductReview[];
 }
 
 // Matches the { meta, data } shape returned by productService.getAllProducts()

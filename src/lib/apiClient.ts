@@ -2,7 +2,7 @@
 // Instead of writing fetch() + headers + error handling in every
 // component, every API call goes through this one function.
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
 interface ApiClientOptions {
   method?: "GET" | "POST" | "PATCH" | "PUT" | "DELETE";

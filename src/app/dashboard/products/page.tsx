@@ -33,7 +33,7 @@ export default function ManageProductsPage() {
       router.push("/");
       return;
     }
-     // eslint-disable-next-line react-hooks/set-state-in-effect
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsLoading(true);
     getAllProducts({ page, limit: LIMIT })
       .then((res) => {

@@ -6,6 +6,8 @@ import "./globals.css";
 import { AuthProvider } from "@/context/AuthContext";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
+import { CartProvider } from "@/context/CartContext";
+import { WishlistProvider } from "@/context/WishlistContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -30,10 +32,14 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     >
       <body className="min-h-full flex flex-col">
         <AuthProvider>
+          <CartProvider>
+            <WishlistProvider>
           <Navbar />
           {children}
           <Footer />
           <ToastContainer position="top-right" autoClose={3000} theme="light" />
+          </WishlistProvider>
+          </CartProvider>
           </AuthProvider>
 
       </body>
