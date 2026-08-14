@@ -22,8 +22,9 @@ export async function getAllProducts(filters?: ProductFilters): Promise<ProductL
   const res = await fetch(`${BASE_URL}/products?${query.toString()}`);
   const result = await res.json();
   if (!res.ok) throw new Error(result.message || "Failed to fetch products");
-  
-  return { meta: result.meta, data: result.data };
+
+  // result.data already has the { meta, data } shape — don't re-wrap it
+   return { meta: result.meta, data: result.data };
 }
 
 export async function getProductById(id: string): Promise<Product> {

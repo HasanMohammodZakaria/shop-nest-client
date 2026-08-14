@@ -1,5 +1,14 @@
 @import "tailwindcss";
 
+html, body {
+  overflow-x: hidden;
+  max-width: 100vw;
+}
+
+* {
+  min-width: 0;
+}
+
 :root {
   /* ============ PRIMARY — main brand color (buttons, links, active states) ============ */
   --color-primary: #059669;         /* emerald-600 — trust, "buy now" actions */
@@ -64,3 +73,8 @@ body {
   transition-property: background-color, border-color, color, box-shadow;
   transition-duration: 150ms;
 }
+
+/* TEMPORARY DEBUG — remove after finding the culprit */
+/* * {
+  outline: 1px solid red !important;
+} */

@@ -11,3 +11,12 @@ export interface Review {
   createdAt: string;
   updatedAt: string;
 }
+
+export interface RecentReview {
+  id: string;
+  rating: number;
+  comment: string | null;
+  createdAt: string;
+  user: { id: string; name: string; image?: string | null; };
+  product: { id: string; name: string };
+}

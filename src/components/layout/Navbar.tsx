@@ -22,6 +22,7 @@ import { useCart } from '@/context/CartContext';
 import { useWishlist } from '@/context/WishlistContext';
 import Button from '@/components/ui/Button';
 import CartDrawer from './CartDrawer';
+import { useRouter } from 'next/navigation';
 
 interface DashboardLink {
   label: string;
@@ -32,6 +33,7 @@ interface DashboardLink {
 const Navbar = () => {
   const { user, logout } = useAuth();
   const { totalItems } = useCart();
+  const router = useRouter(); 
   const { count: wishlistCount } = useWishlist();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -142,6 +144,7 @@ const Navbar = () => {
                       onClick={() => {
                         setDropdownOpen(false);
                         logout();
+                        router.push("/login");
                       }}
                       className="mt-1 block w-full border-t border-border px-4 py-2 text-left text-sm text-error hover:bg-bg-muted"
                     >
@@ -260,6 +263,7 @@ const Navbar = () => {
                       onClick={() => {
                         setMobileOpen(false);
                         logout();
+                        router.push("/login");
                       }}
                       className="mt-2 border-t border-border pt-4 text-left text-error"
                     >

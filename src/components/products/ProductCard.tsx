@@ -57,9 +57,12 @@ export default function ProductCard({ product }: ProductCardProps) {
   };
 
   return (
-    <div className="group flex flex-col overflow-hidden rounded-xl border border-border bg-bg shadow-sm transition-shadow hover:shadow-md">
+    <div className="group flex flex-col overflow-hidden rounded-xl border border-border bg-bg shadow-sm transition-shadow hover:shadow-md min-w-0">
       {/* Image section */}
-      <Link href={`/products/${product.id}`} className="relative block h-48 w-full bg-bg-muted">
+      <Link
+        href={`/products/${product.id}`}
+        className="relative block h-48 w-full bg-bg-muted"
+      >
         {product.images?.[0] ? (
           <Image
             src={product.images[0]}
@@ -68,7 +71,9 @@ export default function ProductCard({ product }: ProductCardProps) {
             className="object-cover transition-transform duration-200 group-hover:scale-105"
           />
         ) : (
-          <div className="flex h-full items-center justify-center text-text-muted">No image</div>
+          <div className="flex h-full items-center justify-center text-text-muted">
+            No image
+          </div>
         )}
 
         {/* Category badge — secondary (navy) */}
@@ -92,7 +97,10 @@ export default function ProductCard({ product }: ProductCardProps) {
           aria-label={wishlisted ? "Remove from wishlist" : "Add to wishlist"}
           className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full bg-bg/90 shadow-sm backdrop-blur transition-colors hover:bg-bg disabled:opacity-50"
         >
-          <FiHeart size={16} className={wishlisted ? "fill-error text-error" : "text-text-muted"} />
+          <FiHeart
+            size={16}
+            className={wishlisted ? "fill-error text-error" : "text-text-muted"}
+          />
         </button>
       </Link>
 
@@ -104,11 +112,19 @@ export default function ProductCard({ product }: ProductCardProps) {
           </h3>
         </Link>
 
-        <p className="mt-1 line-clamp-2 flex-1 text-sm text-text-muted">{product.description}</p>
+        <p className="mt-1 line-clamp-2 flex-1 text-sm text-text-muted">
+          {product.description}
+        </p>
 
-        <div className="mt-3 flex items-center justify-between">
-          <span className="text-lg font-bold text-primary">${product.price.toFixed(2)}</span>
-          {!isOutOfStock && <span className="text-xs font-medium text-success">In stock</span>}
+        <div className="mt-3 flex items-center justify-between gap-2 min-w-0">
+          <span className="text-lg font-bold text-primary truncate">
+            ${product.price.toFixed(2)}
+          </span>
+          {!isOutOfStock && (
+            <span className="text-xs font-medium text-success whitespace-nowrap shrink-0">
+              In stock
+            </span>
+          )}
         </div>
 
         {/* Two action buttons */}
