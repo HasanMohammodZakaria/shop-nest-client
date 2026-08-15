@@ -3,12 +3,16 @@
 import { useEffect, useState, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import { toast } from "react-toastify";
-import { FiSearch, FiX, FiChevronLeft, FiChevronRight, FiFilter } from "react-icons/fi";
-import { useAuth } from "@/context/AuthContext";
+import {
+  FiSearch,
+  FiX,
+  FiChevronLeft,
+  FiChevronRight,
+  FiFilter,
+} from "react-icons/fi";
 import ProductCard from "@/components/products/ProductCard";
 import { getAllProducts } from "@/lib/api/products";
 import { getAllCategories } from "@/lib/api/categories";
-import { getMyWishlist } from "@/lib/api/wishlist";
 import { Product, PaginationMeta, ProductFilters } from "@/types/product";
 import { Category } from "@/types/category";
 
@@ -23,21 +27,22 @@ const sortOptions = [
 ] as const;
 
 export default function ShopPage() {
-  const { user, token } = useAuth();
- 
   const searchParams = useSearchParams();
 
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
-  const [wishlistedIds, setWishlistedIds] = useState<Set<string>>(new Set());
   const [meta, setMeta] = useState<PaginationMeta | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
   // filter state
   const [search, setSearch] = useState(searchParams.get("search") || "");
-  const [searchInput, setSearchInput] = useState(searchParams.get("search") || "");
-  const [categoryId, setCategoryId] = useState(searchParams.get("categoryId") || "");
+  const [searchInput, setSearchInput] = useState(
+    searchParams.get("search") || "",
+  );
+  const [categoryId, setCategoryId] = useState(
+    searchParams.get("categoryId") || "",
+  );
   const [minPrice, setMinPrice] = useState(searchParams.get("minPrice") || "");
   const [maxPrice, setMaxPrice] = useState(searchParams.get("maxPrice") || "");
   const [sortIndex, setSortIndex] = useState(0);
@@ -49,20 +54,6 @@ export default function ShopPage() {
       .then(setCategories)
       .catch(() => toast.error("Failed to load categories"));
   }, []);
-
-  // load user's wishlist ids (for heart state) if logged in
-  useEffect(() => {
-    if (!user || !token) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setWishlistedIds(new Set());
-      return;
-    }
-    getMyWishlist(token)
-      .then((items) => setWishlistedIds(new Set(items.map((i) => i.productId))))
-      .catch(() => {
-        /* silent fail — wishlist state just won't show */
-      });
-  }, [user, token]);
 
   const fetchProducts = useCallback(() => {
     const sort = sortOptions[sortIndex];
@@ -77,14 +68,17 @@ export default function ShopPage() {
       sortOrder: sort.sortOrder,
     };
 
-    
     setIsLoading(true);
     getAllProducts(filters)
       .then((res) => {
         setProducts(res.data);
         setMeta(res.meta);
       })
-      .catch((err) => toast.error(err instanceof Error ? err.message : "Failed to load products"))
+      .catch((err) =>
+        toast.error(
+          err instanceof Error ? err.message : "Failed to load products",
+        ),
+      )
       .finally(() => setIsLoading(false));
   }, [page, search, categoryId, minPrice, maxPrice, sortIndex]);
 
@@ -97,15 +91,6 @@ export default function ShopPage() {
     e.preventDefault();
     setSearch(searchInput.trim());
     setPage(1);
-  };
-
-  const handleWishlistChange = (productId: string, wishlisted: boolean) => {
-    setWishlistedIds((prev) => {
-      const next = new Set(prev);
-      if (wishlisted) next.add(productId);
-      else next.delete(productId);
-      return next;
-    });
   };
 
   const clearFilters = () => {
@@ -133,7 +118,10 @@ export default function ShopPage() {
             onChange={(e) => setSearchInput(e.target.value)}
             className="w-full rounded-md border border-border py-2 pl-9 pr-3 text-sm text-text outline-none placeholder:text-text-muted/60 focus:ring-2 focus:ring-primary"
           />
-          <FiSearch size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
+          <FiSearch
+            size={16}
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted"
+          />
         </form>
       </div>
 
@@ -155,7 +143,10 @@ export default function ShopPage() {
             All Categories
           </label>
           {categories.map((cat) => (
-            <label key={cat.id} className="flex items-center gap-2 text-sm text-text">
+            <label
+              key={cat.id}
+              className="flex items-center gap-2 text-sm text-text"
+            >
               <input
                 type="radio"
                 name="category"
@@ -253,11 +244,17 @@ export default function ShopPage() {
         {/* Mobile filters drawer */}
         {mobileFiltersOpen && (
           <div className="fixed inset-0 z-50 lg:hidden">
-            <div className="absolute inset-0 bg-black/40" onClick={() => setMobileFiltersOpen(false)} />
+            <div
+              className="absolute inset-0 bg-black/40"
+              onClick={() => setMobileFiltersOpen(false)}
+            />
             <div className="absolute right-0 top-0 h-full w-80 max-w-[85vw] overflow-y-auto bg-bg p-5 shadow-xl">
               <div className="mb-4 flex items-center justify-between">
                 <h2 className="font-semibold text-text">Filters</h2>
-                <button onClick={() => setMobileFiltersOpen(false)} aria-label="Close filters">
+                <button
+                  onClick={() => setMobileFiltersOpen(false)}
+                  aria-label="Close filters"
+                >
                   <FiX size={20} className="text-text" />
                 </button>
               </div>
@@ -275,7 +272,9 @@ export default function ShopPage() {
           ) : products.length === 0 ? (
             <div className="flex min-h-[40vh] flex-col items-center justify-center text-center">
               <p className="mb-1 font-medium text-text">No products found</p>
-              <p className="text-sm text-text-muted">Try adjusting your filters</p>
+              <p className="text-sm text-text-muted">
+                Try adjusting your filters
+              </p>
             </div>
           ) : (
             <>
@@ -285,12 +284,7 @@ export default function ShopPage() {
 
               <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
                 {products.map((product) => (
-                  <ProductCard
-                    key={product.id}
-                    product={product}
-                    isWishlisted={wishlistedIds.has(product.id)}
-                    onWishlistChange={handleWishlistChange}
-                  />
+                  <ProductCard key={product.id} product={product} />
                 ))}
               </div>
 
@@ -305,20 +299,26 @@ export default function ShopPage() {
                     <FiChevronLeft size={16} /> Prev
                   </button>
 
-                  {Array.from({ length: meta.totalPages }, (_, i) => i + 1).map((num) => (
-                    <button
-                      key={num}
-                      onClick={() => setPage(num)}
-                      className={`h-8 w-8 rounded-md text-sm font-medium ${
-                        num === page ? "bg-primary text-white" : "text-text hover:bg-bg-muted"
-                      }`}
-                    >
-                      {num}
-                    </button>
-                  ))}
+                  {Array.from({ length: meta.totalPages }, (_, i) => i + 1).map(
+                    (num) => (
+                      <button
+                        key={num}
+                        onClick={() => setPage(num)}
+                        className={`h-8 w-8 rounded-md text-sm font-medium ${
+                          num === page
+                            ? "bg-primary text-white"
+                            : "text-text hover:bg-bg-muted"
+                        }`}
+                      >
+                        {num}
+                      </button>
+                    ),
+                  )}
 
                   <button
-                    onClick={() => setPage((p) => Math.min(p + 1, meta.totalPages))}
+                    onClick={() =>
+                      setPage((p) => Math.min(p + 1, meta.totalPages))
+                    }
                     disabled={page >= meta.totalPages}
                     className="flex items-center gap-1 rounded-md border border-border px-3 py-1.5 text-sm text-text hover:bg-bg-muted disabled:cursor-not-allowed disabled:opacity-40"
                   >
