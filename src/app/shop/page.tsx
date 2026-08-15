@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { toast } from "react-toastify";
 import {
@@ -26,7 +26,7 @@ const sortOptions = [
   { label: "Name: A to Z", sortBy: "name", sortOrder: "asc" },
 ] as const;
 
-export default function ShopPage() {
+function ShopContent() {
   const searchParams = useSearchParams();
 
   const [products, setProducts] = useState<Product[]>([]);
@@ -35,7 +35,6 @@ export default function ShopPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
-  // filter state
   const [search, setSearch] = useState(searchParams.get("search") || "");
   const [searchInput, setSearchInput] = useState(
     searchParams.get("search") || "",
@@ -48,7 +47,6 @@ export default function ShopPage() {
   const [sortIndex, setSortIndex] = useState(0);
   const [page, setPage] = useState(1);
 
-  // load categories once
   useEffect(() => {
     getAllCategories()
       .then(setCategories)
@@ -107,7 +105,6 @@ export default function ShopPage() {
 
   const FiltersPanel = (
     <div className="flex flex-col gap-6">
-      {/* Search */}
       <div>
         <h3 className="mb-2 text-sm font-semibold text-text">Search</h3>
         <form onSubmit={handleSearchSubmit} className="relative">
@@ -125,7 +122,6 @@ export default function ShopPage() {
         </form>
       </div>
 
-      {/* Category */}
       <div>
         <h3 className="mb-2 text-sm font-semibold text-text">Category</h3>
         <div className="flex flex-col gap-2">
@@ -163,7 +159,6 @@ export default function ShopPage() {
         </div>
       </div>
 
-      {/* Price range */}
       <div>
         <h3 className="mb-2 text-sm font-semibold text-text">Price Range</h3>
         <div className="flex items-center gap-2">
@@ -191,7 +186,6 @@ export default function ShopPage() {
         </div>
       </div>
 
-      {/* Sort */}
       <div>
         <h3 className="mb-2 text-sm font-semibold text-text">Sort By</h3>
         <select
@@ -234,14 +228,12 @@ export default function ShopPage() {
       </div>
 
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-[250px_1fr]">
-        {/* Sidebar — desktop */}
         <aside className="hidden lg:block">
           <div className="sticky top-20 rounded-xl border border-border bg-bg p-5 shadow-sm">
             {FiltersPanel}
           </div>
         </aside>
 
-        {/* Mobile filters drawer */}
         {mobileFiltersOpen && (
           <div className="fixed inset-0 z-50 lg:hidden">
             <div
@@ -263,7 +255,6 @@ export default function ShopPage() {
           </div>
         )}
 
-        {/* Products grid */}
         <div>
           {isLoading ? (
             <div className="flex min-h-[40vh] items-center justify-center">
@@ -288,7 +279,6 @@ export default function ShopPage() {
                 ))}
               </div>
 
-              {/* Pagination */}
               {meta && meta.totalPages > 1 && (
                 <div className="mt-8 flex items-center justify-center gap-2">
                   <button
@@ -331,5 +321,19 @@ export default function ShopPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function ShopPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-[60vh] items-center justify-center text-text-muted">
+          Loading...
+        </div>
+      }
+    >
+      <ShopContent />
+    </Suspense>
   );
 }

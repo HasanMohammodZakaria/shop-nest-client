@@ -1,339 +1,280 @@
 "use client";
 
-import { useEffect, useState, useCallback, Suspense } from "react";
-import { useSearchParams } from "next/navigation";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import Image from "next/image";
+import { useCart } from "@/context/CartContext";
+import { useAuth } from "@/context/AuthContext";
+import { apiClient } from "@/lib/apiClient";
+import { Order, CreateOrderPayload } from "@/types/order";
+import Button from "@/components/ui/Button";
+import Input from "@/components/ui/Input";
 import { toast } from "react-toastify";
-import {
-  FiSearch,
-  FiX,
-  FiChevronLeft,
-  FiChevronRight,
-  FiFilter,
-} from "react-icons/fi";
-import ProductCard from "@/components/products/ProductCard";
-import { getAllProducts } from "@/lib/api/products";
-import { getAllCategories } from "@/lib/api/categories";
-import { Product, PaginationMeta, ProductFilters } from "@/types/product";
-import { Category } from "@/types/category";
 
-const LIMIT = 9;
-
-const sortOptions = [
-  { label: "Newest First", sortBy: "createdAt", sortOrder: "desc" },
-  { label: "Oldest First", sortBy: "createdAt", sortOrder: "asc" },
-  { label: "Price: Low to High", sortBy: "price", sortOrder: "asc" },
-  { label: "Price: High to Low", sortBy: "price", sortOrder: "desc" },
-  { label: "Name: A to Z", sortBy: "name", sortOrder: "asc" },
-] as const;
-
-function ShopContent() {
-  const searchParams = useSearchParams();
-
-  const [products, setProducts] = useState<Product[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [meta, setMeta] = useState<PaginationMeta | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
-
-  const [search, setSearch] = useState(searchParams.get("search") || "");
-  const [searchInput, setSearchInput] = useState(
-    searchParams.get("search") || "",
-  );
-  const [categoryId, setCategoryId] = useState(
-    searchParams.get("categoryId") || "",
-  );
-  const [minPrice, setMinPrice] = useState(searchParams.get("minPrice") || "");
-  const [maxPrice, setMaxPrice] = useState(searchParams.get("maxPrice") || "");
-  const [sortIndex, setSortIndex] = useState(0);
-  const [page, setPage] = useState(1);
-
-  useEffect(() => {
-    getAllCategories()
-      .then(setCategories)
-      .catch(() => toast.error("Failed to load categories"));
-  }, []);
-
-  const fetchProducts = useCallback(() => {
-    const sort = sortOptions[sortIndex];
-    const filters: ProductFilters = {
-      page,
-      limit: LIMIT,
-      search: search || undefined,
-      categoryId: categoryId || undefined,
-      minPrice: minPrice ? Number(minPrice) : undefined,
-      maxPrice: maxPrice ? Number(maxPrice) : undefined,
-      sortBy: sort.sortBy,
-      sortOrder: sort.sortOrder,
-    };
-
-    setIsLoading(true);
-    getAllProducts(filters)
-      .then((res) => {
-        setProducts(res.data);
-        setMeta(res.meta);
-      })
-      .catch((err) =>
-        toast.error(
-          err instanceof Error ? err.message : "Failed to load products",
-        ),
-      )
-      .finally(() => setIsLoading(false));
-  }, [page, search, categoryId, minPrice, maxPrice, sortIndex]);
-
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    fetchProducts();
-  }, [fetchProducts]);
-
-  const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setSearch(searchInput.trim());
-    setPage(1);
-  };
-
-  const clearFilters = () => {
-    setSearchInput("");
-    setSearch("");
-    setCategoryId("");
-    setMinPrice("");
-    setMaxPrice("");
-    setSortIndex(0);
-    setPage(1);
-  };
-
-  const hasActiveFilters = search || categoryId || minPrice || maxPrice;
-
-  const FiltersPanel = (
-    <div className="flex flex-col gap-6">
-      <div>
-        <h3 className="mb-2 text-sm font-semibold text-text">Search</h3>
-        <form onSubmit={handleSearchSubmit} className="relative">
-          <input
-            type="text"
-            placeholder="Search products..."
-            value={searchInput}
-            onChange={(e) => setSearchInput(e.target.value)}
-            className="w-full rounded-md border border-border py-2 pl-9 pr-3 text-sm text-text outline-none placeholder:text-text-muted/60 focus:ring-2 focus:ring-primary"
-          />
-          <FiSearch
-            size={16}
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted"
-          />
-        </form>
-      </div>
-
-      <div>
-        <h3 className="mb-2 text-sm font-semibold text-text">Category</h3>
-        <div className="flex flex-col gap-2">
-          <label className="flex items-center gap-2 text-sm text-text">
-            <input
-              type="radio"
-              name="category"
-              checked={categoryId === ""}
-              onChange={() => {
-                setCategoryId("");
-                setPage(1);
-              }}
-              className="accent-primary"
-            />
-            All Categories
-          </label>
-          {categories.map((cat) => (
-            <label
-              key={cat.id}
-              className="flex items-center gap-2 text-sm text-text"
-            >
-              <input
-                type="radio"
-                name="category"
-                checked={categoryId === cat.id}
-                onChange={() => {
-                  setCategoryId(cat.id);
-                  setPage(1);
-                }}
-                className="accent-primary"
-              />
-              {cat.name}
-            </label>
-          ))}
-        </div>
-      </div>
-
-      <div>
-        <h3 className="mb-2 text-sm font-semibold text-text">Price Range</h3>
-        <div className="flex items-center gap-2">
-          <input
-            type="number"
-            placeholder="Min"
-            value={minPrice}
-            onChange={(e) => {
-              setMinPrice(e.target.value);
-              setPage(1);
-            }}
-            className="w-full rounded-md border border-border px-3 py-2 text-sm text-text outline-none placeholder:text-text-muted/60 focus:ring-2 focus:ring-primary"
-          />
-          <span className="text-text-muted">–</span>
-          <input
-            type="number"
-            placeholder="Max"
-            value={maxPrice}
-            onChange={(e) => {
-              setMaxPrice(e.target.value);
-              setPage(1);
-            }}
-            className="w-full rounded-md border border-border px-3 py-2 text-sm text-text outline-none placeholder:text-text-muted/60 focus:ring-2 focus:ring-primary"
-          />
-        </div>
-      </div>
-
-      <div>
-        <h3 className="mb-2 text-sm font-semibold text-text">Sort By</h3>
-        <select
-          value={sortIndex}
-          onChange={(e) => {
-            setSortIndex(Number(e.target.value));
-            setPage(1);
-          }}
-          className="w-full rounded-md border border-border bg-bg px-3 py-2 text-sm text-text outline-none focus:ring-2 focus:ring-primary"
-        >
-          {sortOptions.map((opt, i) => (
-            <option key={opt.label} value={i}>
-              {opt.label}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      {hasActiveFilters && (
-        <button
-          onClick={clearFilters}
-          className="flex items-center justify-center gap-2 rounded-md border border-border py-2 text-sm text-text-muted hover:bg-bg-muted"
-        >
-          <FiX size={14} /> Clear Filters
-        </button>
-      )}
-    </div>
-  );
-
-  return (
-    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-      <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-text">Shop</h1>
-        <button
-          onClick={() => setMobileFiltersOpen(true)}
-          className="flex items-center gap-2 rounded-md border border-border px-3 py-2 text-sm text-text lg:hidden"
-        >
-          <FiFilter size={16} /> Filters
-        </button>
-      </div>
-
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-[250px_1fr]">
-        <aside className="hidden lg:block">
-          <div className="sticky top-20 rounded-xl border border-border bg-bg p-5 shadow-sm">
-            {FiltersPanel}
-          </div>
-        </aside>
-
-        {mobileFiltersOpen && (
-          <div className="fixed inset-0 z-50 lg:hidden">
-            <div
-              className="absolute inset-0 bg-black/40"
-              onClick={() => setMobileFiltersOpen(false)}
-            />
-            <div className="absolute right-0 top-0 h-full w-80 max-w-[85vw] overflow-y-auto bg-bg p-5 shadow-xl">
-              <div className="mb-4 flex items-center justify-between">
-                <h2 className="font-semibold text-text">Filters</h2>
-                <button
-                  onClick={() => setMobileFiltersOpen(false)}
-                  aria-label="Close filters"
-                >
-                  <FiX size={20} className="text-text" />
-                </button>
-              </div>
-              {FiltersPanel}
-            </div>
-          </div>
-        )}
-
-        <div>
-          {isLoading ? (
-            <div className="flex min-h-[40vh] items-center justify-center">
-              <p className="text-text-muted">Loading products...</p>
-            </div>
-          ) : products.length === 0 ? (
-            <div className="flex min-h-[40vh] flex-col items-center justify-center text-center">
-              <p className="mb-1 font-medium text-text">No products found</p>
-              <p className="text-sm text-text-muted">
-                Try adjusting your filters
-              </p>
-            </div>
-          ) : (
-            <>
-              <p className="mb-4 text-sm text-text-muted">
-                Showing {products.length} of {meta?.total ?? 0} products
-              </p>
-
-              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
-                {products.map((product) => (
-                  <ProductCard key={product.id} product={product} />
-                ))}
-              </div>
-
-              {meta && meta.totalPages > 1 && (
-                <div className="mt-8 flex items-center justify-center gap-2">
-                  <button
-                    onClick={() => setPage((p) => Math.max(p - 1, 1))}
-                    disabled={page <= 1}
-                    className="flex items-center gap-1 rounded-md border border-border px-3 py-1.5 text-sm text-text hover:bg-bg-muted disabled:cursor-not-allowed disabled:opacity-40"
-                  >
-                    <FiChevronLeft size={16} /> Prev
-                  </button>
-
-                  {Array.from({ length: meta.totalPages }, (_, i) => i + 1).map(
-                    (num) => (
-                      <button
-                        key={num}
-                        onClick={() => setPage(num)}
-                        className={`h-8 w-8 rounded-md text-sm font-medium ${
-                          num === page
-                            ? "bg-primary text-white"
-                            : "text-text hover:bg-bg-muted"
-                        }`}
-                      >
-                        {num}
-                      </button>
-                    ),
-                  )}
-
-                  <button
-                    onClick={() =>
-                      setPage((p) => Math.min(p + 1, meta.totalPages))
-                    }
-                    disabled={page >= meta.totalPages}
-                    className="flex items-center gap-1 rounded-md border border-border px-3 py-1.5 text-sm text-text hover:bg-bg-muted disabled:cursor-not-allowed disabled:opacity-40"
-                  >
-                    Next <FiChevronRight size={16} />
-                  </button>
-                </div>
-              )}
-            </>
-          )}
-        </div>
-      </div>
-    </div>
-  );
+interface ShippingForm {
+  fullName: string;
+  phone: string;
+  street: string;
+  city: string;
+  postalCode: string;
+  country: string;
 }
 
-export default function ShopPage() {
+export default function CheckoutPage() {
+  const { items, totalPrice, clearCart } = useCart();
+  const { token, user } = useAuth();
+  const router = useRouter();
+
+  const [form, setForm] = useState<ShippingForm>({
+    fullName: user?.name || "",
+    phone: user?.phone || "",
+    street: "",
+    city: "",
+    postalCode: "",
+    country: "Bangladesh",
+  });
+  const [errors, setErrors] = useState<Partial<ShippingForm>>({});
+  const [isPlacingOrder, setIsPlacingOrder] = useState(false);
+
+  const shipping = totalPrice > 0 && totalPrice < 50 ? 5.99 : 0;
+  const grandTotal = totalPrice + shipping;
+
+  const updateField = (field: keyof ShippingForm, value: string) => {
+    setForm((prev) => ({ ...prev, [field]: value }));
+    setErrors((prev) => ({ ...prev, [field]: undefined }));
+  };
+
+  const validate = (): boolean => {
+    const newErrors: Partial<ShippingForm> = {};
+    if (!form.fullName.trim()) newErrors.fullName = "Full name is required";
+    if (!form.phone.trim()) newErrors.phone = "Phone number is required";
+    if (!form.street.trim()) newErrors.street = "Street address is required";
+    if (!form.city.trim()) newErrors.city = "City is required";
+    if (!form.postalCode.trim())
+      newErrors.postalCode = "Postal code is required";
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handlePlaceOrder = async () => {
+    if (!token) {
+      toast.error("Please login to continue");
+      router.push("/login");
+      return;
+    }
+    if (items.length === 0) {
+      toast.error("Your cart is empty");
+      return;
+    }
+    if (!validate()) {
+      toast.error("Please fill in all required fields");
+      return;
+    }
+
+    // Combine the structured fields into the single string the backend expects
+    const shippingAddress = `${form.fullName}, ${form.phone}, ${form.street}, ${form.city}, ${form.postalCode}, ${form.country}`;
+
+    setIsPlacingOrder(true);
+    try {
+      const payload: CreateOrderPayload = {
+        shippingAddress,
+        items: items.map((item) => ({
+          productId: item.product.id,
+          quantity: item.quantity,
+        })),
+      };
+
+      const res = await apiClient<Order>("/orders", {
+        method: "POST",
+        body: payload,
+        token,
+      });
+
+      clearCart();
+      toast.success("Order placed successfully!");
+
+      // NOTE: once SSLCommerz is wired up, redirect to the payment gateway
+      // here using res.data.id, instead of going straight to the orders page.
+      router.push(`/dashboard/orders?highlight=${res.data.id}`);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to place order");
+    } finally {
+      setIsPlacingOrder(false);
+    }
+  };
+
+  if (items.length === 0) {
+    return (
+      <div className="max-w-3xl mx-auto px-4 py-16 text-center">
+        <p className="text-text-muted mb-4">Your cart is empty.</p>
+        <Button onClick={() => router.push("/shop")}>Go to Shop</Button>
+      </div>
+    );
+  }
+
   return (
-    <Suspense
-      fallback={
-        <div className="flex min-h-[60vh] items-center justify-center text-text-muted">
-          Loading...
+    <div className="max-w-5xl mx-auto px-4 py-10">
+      <h1 className="text-2xl font-bold text-text mb-8">Checkout</h1>
+
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-8">
+        {/* Left — Shipping + Payment form */}
+        <div className="flex flex-col gap-8">
+          <div className="border border-border rounded-xl p-6">
+            <h2 className="text-lg font-semibold text-text mb-4">
+              Shipping details
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <Input
+                id="fullName"
+                label="Full name"
+                value={form.fullName}
+                onChange={(e) => updateField("fullName", e.target.value)}
+                error={errors.fullName}
+              />
+              <Input
+                id="phone"
+                label="Phone number"
+                value={form.phone}
+                onChange={(e) => updateField("phone", e.target.value)}
+                error={errors.phone}
+              />
+              <div className="sm:col-span-2">
+                <Input
+                  id="street"
+                  label="Street address"
+                  placeholder="House no, road, area"
+                  value={form.street}
+                  onChange={(e) => updateField("street", e.target.value)}
+                  error={errors.street}
+                />
+              </div>
+              <Input
+                id="city"
+                label="City"
+                value={form.city}
+                onChange={(e) => updateField("city", e.target.value)}
+                error={errors.city}
+              />
+              <Input
+                id="postalCode"
+                label="Postal code"
+                value={form.postalCode}
+                onChange={(e) => updateField("postalCode", e.target.value)}
+                error={errors.postalCode}
+              />
+              <div className="sm:col-span-2">
+                <Input
+                  id="country"
+                  label="Country"
+                  value={form.country}
+                  onChange={(e) => updateField("country", e.target.value)}
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="border border-border rounded-xl p-6">
+            <h2 className="text-lg font-semibold text-text mb-4">
+              Payment method
+            </h2>
+            <div className="flex flex-col gap-3">
+              <label className="flex items-center gap-3 border border-primary bg-bg-muted rounded-lg p-4 cursor-pointer">
+                <input
+                  type="radio"
+                  name="paymentMethod"
+                  checked
+                  readOnly
+                  className="accent-primary"
+                />
+                <div>
+                  <p className="text-sm font-medium text-text">
+                    Cash on delivery
+                  </p>
+                  <p className="text-xs text-text-muted">
+                    Pay when your order arrives
+                  </p>
+                </div>
+              </label>
+
+              <label className="flex items-center gap-3 border border-border rounded-lg p-4 cursor-not-allowed opacity-50">
+                <input type="radio" name="paymentMethod" disabled />
+                <div>
+                  <p className="text-sm font-medium text-text">Pay online</p>
+                  <p className="text-xs text-text-muted">
+                    Card, mobile banking — coming soon
+                  </p>
+                </div>
+              </label>
+            </div>
+          </div>
         </div>
-      }
-    >
-      <ShopContent />
-    </Suspense>
+
+        {/* Right — Order summary */}
+        <div className="h-fit border border-border rounded-xl p-6">
+          <h2 className="text-lg font-semibold text-text mb-4">
+            Order summary
+          </h2>
+
+          <div className="flex flex-col gap-3 mb-4">
+            {items.map((item) => (
+              <div key={item.product.id} className="flex items-center gap-3">
+                <div className="w-14 h-14 rounded-md overflow-hidden bg-bg-muted relative border border-border shrink-0">
+                  {item.product.images[0] && (
+                    <Image
+                      src={item.product.images[0]}
+                      alt={item.product.name}
+                      fill
+                      className="object-cover"
+                    />
+                  )}
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm text-text font-medium line-clamp-1">
+                    {item.product.name}
+                  </p>
+                  <p className="text-xs text-text-muted">
+                    {item.quantity} × ${item.product.price.toFixed(2)}
+                  </p>
+                </div>
+                <p className="text-sm font-medium text-text">
+                  ${(item.quantity * item.product.price).toFixed(2)}
+                </p>
+              </div>
+            ))}
+          </div>
+
+          <div className="flex flex-col gap-2 border-t border-border pt-4 text-sm">
+            <div className="flex justify-between text-text-muted">
+              <span>Subtotal</span>
+              <span className="text-text">${totalPrice.toFixed(2)}</span>
+            </div>
+            <div className="flex justify-between text-text-muted">
+              <span>Shipping</span>
+              <span className="text-text">
+                {shipping === 0 ? (
+                  <span className="text-success">Free</span>
+                ) : (
+                  `$${shipping.toFixed(2)}`
+                )}
+              </span>
+            </div>
+          </div>
+
+          <div className="flex justify-between py-4 border-t border-border mt-2 text-base font-semibold text-text">
+            <span>Total</span>
+            <span className="text-primary">${grandTotal.toFixed(2)}</span>
+          </div>
+
+          <Button
+            variant="primary"
+            className="w-full"
+            onClick={handlePlaceOrder}
+            isLoading={isPlacingOrder}
+          >
+            Place order
+          </Button>
+        </div>
+      </div>
+    </div>
   );
 }
