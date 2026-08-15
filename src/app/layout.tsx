@@ -40,7 +40,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           <CartProvider>
             <WishlistProvider>
               <Navbar />
-              {children}
+              <main className="flex-1">{children}</main>
               <Footer />
               <ToastContainer
                 position="top-right"

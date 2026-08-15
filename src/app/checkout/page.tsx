@@ -34,7 +34,6 @@ export default function CheckoutPage() {
     country: "Bangladesh",
   });
   const [errors, setErrors] = useState<Partial<ShippingForm>>({});
-  const [paymentMethod, setPaymentMethod] = useState<"COD" | "ONLINE">("COD");
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
 
   const shipping = totalPrice > 0 && totalPrice < 50 ? 5.99 : 0;
@@ -51,7 +50,8 @@ export default function CheckoutPage() {
     if (!form.phone.trim()) newErrors.phone = "Phone number is required";
     if (!form.street.trim()) newErrors.street = "Street address is required";
     if (!form.city.trim()) newErrors.city = "City is required";
-    if (!form.postalCode.trim()) newErrors.postalCode = "Postal code is required";
+    if (!form.postalCode.trim())
+      newErrors.postalCode = "Postal code is required";
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -120,7 +120,9 @@ export default function CheckoutPage() {
         {/* Left — Shipping + Payment form */}
         <div className="flex flex-col gap-8">
           <div className="border border-border rounded-xl p-6">
-            <h2 className="text-lg font-semibold text-text mb-4">Shipping details</h2>
+            <h2 className="text-lg font-semibold text-text mb-4">
+              Shipping details
+            </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Input
                 id="fullName"
@@ -172,41 +174,35 @@ export default function CheckoutPage() {
           </div>
 
           <div className="border border-border rounded-xl p-6">
-            <h2 className="text-lg font-semibold text-text mb-4">Payment method</h2>
+            <h2 className="text-lg font-semibold text-text mb-4">
+              Payment method
+            </h2>
             <div className="flex flex-col gap-3">
-              <label
-                className={`flex items-center gap-3 border rounded-lg p-4 cursor-pointer ${
-                  paymentMethod === "COD" ? "border-primary bg-bg-muted" : "border-border"
-                }`}
-              >
+              <label className="flex items-center gap-3 border border-primary bg-bg-muted rounded-lg p-4 cursor-pointer">
                 <input
                   type="radio"
                   name="paymentMethod"
-                  checked={paymentMethod === "COD"}
-                  onChange={() => setPaymentMethod("COD")}
+                  checked
+                  readOnly
                   className="accent-primary"
                 />
                 <div>
-                  <p className="text-sm font-medium text-text">Cash on delivery</p>
-                  <p className="text-xs text-text-muted">Pay when your order arrives</p>
+                  <p className="text-sm font-medium text-text">
+                    Cash on delivery
+                  </p>
+                  <p className="text-xs text-text-muted">
+                    Pay when your order arrives
+                  </p>
                 </div>
               </label>
 
-              <label
-                className={`flex items-center gap-3 border rounded-lg p-4 cursor-pointer ${
-                  paymentMethod === "ONLINE" ? "border-primary bg-bg-muted" : "border-border"
-                }`}
-              >
-                <input
-                  type="radio"
-                  name="paymentMethod"
-                  checked={paymentMethod === "ONLINE"}
-                  onChange={() => setPaymentMethod("ONLINE")}
-                  className="accent-primary"
-                />
+              <label className="flex items-center gap-3 border border-border rounded-lg p-4 cursor-not-allowed opacity-50">
+                <input type="radio" name="paymentMethod" disabled />
                 <div>
                   <p className="text-sm font-medium text-text">Pay online</p>
-                  <p className="text-xs text-text-muted">Card, mobile banking via SSLCommerz</p>
+                  <p className="text-xs text-text-muted">
+                    Card, mobile banking — coming soon
+                  </p>
                 </div>
               </label>
             </div>
@@ -215,7 +211,9 @@ export default function CheckoutPage() {
 
         {/* Right — Order summary */}
         <div className="h-fit border border-border rounded-xl p-6">
-          <h2 className="text-lg font-semibold text-text mb-4">Order summary</h2>
+          <h2 className="text-lg font-semibold text-text mb-4">
+            Order summary
+          </h2>
 
           <div className="flex flex-col gap-3 mb-4">
             {items.map((item) => (
@@ -231,7 +229,9 @@ export default function CheckoutPage() {
                   )}
                 </div>
                 <div className="flex-1">
-                  <p className="text-sm text-text font-medium line-clamp-1">{item.product.name}</p>
+                  <p className="text-sm text-text font-medium line-clamp-1">
+                    {item.product.name}
+                  </p>
                   <p className="text-xs text-text-muted">
                     {item.quantity} × ${item.product.price.toFixed(2)}
                   </p>
@@ -251,7 +251,11 @@ export default function CheckoutPage() {
             <div className="flex justify-between text-text-muted">
               <span>Shipping</span>
               <span className="text-text">
-                {shipping === 0 ? <span className="text-success">Free</span> : `$${shipping.toFixed(2)}`}
+                {shipping === 0 ? (
+                  <span className="text-success">Free</span>
+                ) : (
+                  `$${shipping.toFixed(2)}`
+                )}
               </span>
             </div>
           </div>
